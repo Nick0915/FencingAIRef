@@ -1,0 +1,6 @@
+pytubefix
+opencv-python
+numpy
+torch
+torchvision
+torchaudio
