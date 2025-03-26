@@ -46,8 +46,8 @@ def get_videos(num: int = None):
 
     tasks = [(vid_id, link) for vid_id, link in enumerate(sabre_links[:num])]
 
-    with mp.Pool(processes=10) as pool:
+    with mp.Pool(processes=25) as pool:
         pool.starmap(download_vid, tasks)
 
 if __name__ == '__main__':
-    get_videos(100)
+    get_videos(300)
