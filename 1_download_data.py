@@ -5,10 +5,6 @@
 SABRE_OUTPUT_DIR = './Data/YtDownloads/Sabre/'
 MAX_VIDS = 100
 
-# read all links from txt file
-with open('./sabre_vids.txt', 'r') as links_file:
-    sabre_links = [link.strip() for link in links_file.readlines()]
-
 # allows us downloading YT videos to local
 from pytubefix import YouTube as YT
 
@@ -40,14 +36,17 @@ def download_vid(vid_id: int, link: str):
 import multiprocessing as mp
 import numpy as np
 
-def get_videos(num: int = None):
+def get_videos(links, num: int = None):
     if num is None:
         num = len(sabre_links)
 
-    tasks = [(vid_id, link) for vid_id, link in enumerate(sabre_links[:num])]
+    tasks = [(vid_id, link) for vid_id, link in enumerate(links[:num])]
 
     with mp.Pool(processes=25) as pool:
         pool.starmap(download_vid, tasks)
 
 if __name__ == '__main__':
-    get_videos(300)
+    # read all links from txt file
+    with open('./sabre_vids.txt', 'r') as links_file:
+        sabre_links = [link.strip() for link in links_file.readlines()]
+        get_videos(sabre_links, 300)
