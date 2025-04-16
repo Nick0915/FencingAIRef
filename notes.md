@@ -20,3 +20,10 @@ I will track things such as:
   1) Download videos from YouTube
     * We already have a list of sabre videos of the same format, so we'll start with this for now
     * Used a multiprocessing pool to download many videos in parallel (100 videos in ~ 1m20s)
+  2) Label keyframes in video where the score changes, and what the score is at that point
+    * First, assume we have a function that can spit out the score based on reading one frame
+    * We develop an algorithm that binary-searches for the exact frame these scores change1
+    * Then, implement the assumed function using an off-the-shelf huggingface model trained on MNIST digits
+    * References:
+      * https://pyimagesearch.com/2017/07/17/credit-card-ocr-with-opencv-and-python/
+      * https://huggingface.co/prithivMLmods/Mnist-Digits-SigLIP2
