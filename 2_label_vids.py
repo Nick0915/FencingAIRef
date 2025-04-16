@@ -33,32 +33,27 @@ R_PATCH_RIGHT = R_PATCH_LEFT + PATCH_WIDTH
 R_PATCH_MID = (R_PATCH_LEFT + R_PATCH_RIGHT) // 2 - 2
 ADJ = -32
 
+def horiz_pad(patch):
+    hpad = np.zeros((patch.shape[0], 28 - patch.shape[1]))
+    return np.hstack((patch, hpad))
+
 def predict_score_from_frame(frame, view_patches=False):
-    blurred = frame
-    # blurred = cv2.blur(frame, (2, 2)
-
-    def vert_pad(patch):
-        vpad = np.zeros((28 - patch.shape[0], patch.shape[1]))
-        return np.vstack((patch, vpad))
-
-    def horiz_pad(patch):
-        hpad = np.zeros((patch.shape[0], 28 - patch.shape[1]))
-        return np.hstack((patch, hpad))
 
     # the whole patch of FotL's score
     # this will be most accurate if score is 1 digit
-    lwhole_patch = blurred[PATCH_TOP:PATCH_BOTTOM, L_PATCH_LEFT:L_PATCH_RIGHT]
+    lwhole_patch = frame[PATCH_TOP:PATCH_BOTTOM, L_PATCH_LEFT:L_PATCH_RIGHT]
     _, lwhole_patch = cv2.threshold(lwhole_patch, 255 + ADJ, 255, cv2.THRESH_BINARY)
     l_double = np.any(lwhole_patch[:, 0] > 100) # if any pixels on the left border are lit, it's double digits (1X where 0 <= X <= 5)
     lwhole_patch = horiz_pad(lwhole_patch)
-    # lwhole_patch = vert_pad(lwhole_patch)
 
-    # the masked RHS half-patch of FotL's score
-    lhalf_patch2 = lwhole_patch.copy()
-    lhalf_patch2[:, :(L_PATCH_MID-L_PATCH_LEFT)] = 0
-    _, lhalf_patch2 = cv2.threshold(lhalf_patch2, 255 + ADJ, 255, cv2.THRESH_BINARY)
-    lhalf_patch2 = horiz_pad(lhalf_patch2)
-    # lhalf_patch2 = vert_pad(lhalf_patch2)
+    if l_double:
+        # the masked RHS half-patch of FotL's score
+        lhalf_patch2 = lwhole_patch.copy()
+        lhalf_patch2[:, :(L_PATCH_MID-L_PATCH_LEFT)] = 0
+        _, lhalf_patch2 = cv2.threshold(lhalf_patch2, 255 + ADJ, 255, cv2.THRESH_BINARY)
+        lhalf_patch2 = horiz_pad(lhalf_patch2)
+    else:
+        lhalf_patch2 = None
 
     if view_patches:
         cv2.imshow('left patch whole', lwhole_patch)
@@ -67,18 +62,19 @@ def predict_score_from_frame(frame, view_patches=False):
         cv2.destroyAllWindows()
 
     # the whole patch of FotR's score
-    rwhole_patch = blurred[PATCH_TOP:PATCH_BOTTOM, R_PATCH_LEFT:R_PATCH_RIGHT]
+    rwhole_patch = frame[PATCH_TOP:PATCH_BOTTOM, R_PATCH_LEFT:R_PATCH_RIGHT]
     _, rwhole_patch = cv2.threshold(rwhole_patch, 255 + ADJ, 255, cv2.THRESH_BINARY)
     r_double = np.any(rwhole_patch[:, 0] > 100) # if any pixels on the left border are lit, it's double digits (1X where 0 <= X <= 5)
     rwhole_patch = horiz_pad(rwhole_patch)
-    # rwhole_patch = vert_pad(rwhole_patch)
 
-    # the masked RHS half-patch of FotR's score
-    rhalf_patch2 = rwhole_patch.copy()
-    rhalf_patch2[:, :(L_PATCH_MID-L_PATCH_LEFT)] = 0
-    _, rhalf_patch2 = cv2.threshold(rhalf_patch2, 255 + ADJ, 255, cv2.THRESH_BINARY)
-    rhalf_patch2 = horiz_pad(rhalf_patch2)
-    # rhalf_patch2 = vert_pad(rhalf_patch2)
+    if r_double:
+        # the masked RHS half-patch of FotR's score
+        rhalf_patch2 = rwhole_patch.copy()
+        rhalf_patch2[:, :(L_PATCH_MID-L_PATCH_LEFT)] = 0
+        _, rhalf_patch2 = cv2.threshold(rhalf_patch2, 255 + ADJ, 255, cv2.THRESH_BINARY)
+        rhalf_patch2 = horiz_pad(rhalf_patch2)
+    else:
+        rhalf_patch2 = None
 
     if view_patches:
         cv2.imshow('right patch whole', rwhole_patch)
@@ -86,28 +82,57 @@ def predict_score_from_frame(frame, view_patches=False):
         cv2.waitKey()
         cv2.destroyAllWindows()
 
-    lwhole_input = input_processor(images=Image.fromarray(lwhole_patch), return_tensors='pt')
-    lhalf2_input = input_processor(images=Image.fromarray(lhalf_patch2), return_tensors='pt')
+    lwhole_input = None
+    lhalf2_input = None
+    rwhole_input = None
+    rhalf2_input = None
 
-    rwhole_input = input_processor(images=Image.fromarray(rwhole_patch), return_tensors='pt')
-    rhalf2_input = input_processor(images=Image.fromarray(rhalf_patch2), return_tensors='pt')
+    if not l_double:
+        lwhole_input = input_processor(images=Image.fromarray(lwhole_patch), return_tensors='pt')
+    else:
+        lhalf2_input = input_processor(images=Image.fromarray(lhalf_patch2), return_tensors='pt')
+
+    if not r_double:
+        rwhole_input = input_processor(images=Image.fromarray(rwhole_patch), return_tensors='pt')
+    else:
+        rhalf2_input = input_processor(images=Image.fromarray(rhalf_patch2), return_tensors='pt')
 
     with torch.no_grad():
-        lwhole_outputs = mnist_model(**lwhole_input)
-        lwhole_logits = lwhole_outputs.logits
-        lwhole_probs = torch.nn.functional.softmax(lwhole_logits, dim=1).squeeze()
+        if not l_double:
+            lwhole_outputs = mnist_model(**lwhole_input)
+            lwhole_logits = lwhole_outputs.logits
+            lwhole_probs = torch.nn.functional.softmax(lwhole_logits, dim=1).squeeze()
+        else:
+            lwhole_outputs = None
+            lwhole_logits = None
+            lwhole_probs = None
 
-        lhalf2_outputs = mnist_model(**lhalf2_input)
-        lhalf2_logits = lhalf2_outputs.logits
-        lhalf2_probs = torch.nn.functional.softmax(lhalf2_logits, dim=1).squeeze()
+        if l_double:
+            lhalf2_outputs = mnist_model(**lhalf2_input)
+            lhalf2_logits = lhalf2_outputs.logits
+            lhalf2_probs = torch.nn.functional.softmax(lhalf2_logits, dim=1).squeeze()
+        else:
+            lhalf2_outputs = None
+            lhalf2_logits = None
+            lhalf2_probs = None
 
-        rwhole_outputs = mnist_model(**rwhole_input)
-        rwhole_logits = rwhole_outputs.logits
-        rwhole_probs = torch.nn.functional.softmax(rwhole_logits, dim=1).squeeze()
+        if not r_double:
+            rwhole_outputs = mnist_model(**rwhole_input)
+            rwhole_logits = rwhole_outputs.logits
+            rwhole_probs = torch.nn.functional.softmax(rwhole_logits, dim=1).squeeze()
+        else:
+            rwhole_outputs = None
+            rwhole_logits = None
+            rwhole_probs = None
 
-        rhalf2_outputs = mnist_model(**rhalf2_input)
-        rhalf2_logits = rhalf2_outputs.logits
-        rhalf2_probs = torch.nn.functional.softmax(rhalf2_logits, dim=1).squeeze()
+        if r_double:
+            rhalf2_outputs = mnist_model(**rhalf2_input)
+            rhalf2_logits = rhalf2_outputs.logits
+            rhalf2_probs = torch.nn.functional.softmax(rhalf2_logits, dim=1).squeeze()
+        else:
+            rhalf2_outputs = None
+            rhalf2_logits = None
+            rhalf2_probs = None
 
     def most_likely(whole_probs, half2_probs, double_digit):
         if double_digit:
@@ -150,9 +175,10 @@ def get_score_from_frame(index, cap, score_info):
 
 def main():
     files = os.listdir(VID_DIR)
-    for file in files[:2]:
+    for file in files[:20]:
         cap = cv2.VideoCapture(VID_DIR + file)
         num_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+        # num_frames = 10_000
         score_info = pd.DataFrame(columns=['ms', 'lscore', 'rscore', 'lconf', 'rconf'], index=[])
 
         # will contain index of all frames where the score changes
@@ -169,14 +195,20 @@ def main():
                 lscore = get_score_from_frame(l, cap, score_info)
                 mscore = get_score_from_frame(m, cap, score_info)
                 if lscore == mscore:
+                    if l not in score_change_frames:
+                        score_info = score_info.drop(l)
                     l = m
                 else:
+                    if r not in score_change_frames:
+                        score_info = score_info.drop(r)
                     r = m
             score_change_frames.append(r)
-            print(f'Score changed to {score_info.loc[r, 'lscore']}-{score_info.loc[r, 'rscore']} at frame#{r}, ({score_info.loc[r, 'ms']}ms)')
+            # print(f'Score changed to {score_info.loc[r, 'lscore']}-{score_info.loc[r, 'rscore']} at frame#{r}, ({score_info.loc[r, 'ms']}ms)')
+            print(f'{file} progress: {100 * r / num_frames:.2f}%')
             l = r
             r = num_frames - 1
 
+        score_info = score_info.sort_values('ms', ascending=True)
         csv = score_info.to_csv()
         with open(CSV_DIR + f'{os.path.splitext(file)[0]}.csv', 'w') as f:
             f.write(csv)

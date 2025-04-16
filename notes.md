@@ -27,3 +27,5 @@ I will track things such as:
     * References:
       * https://pyimagesearch.com/2017/07/17/credit-card-ocr-with-opencv-and-python/
       * https://huggingface.co/prithivMLmods/Mnist-Digits-SigLIP2
+    * With this naive algorithm (minimal changes), I can label 20 videos in 25 minutes (data set is on the order of ~1000 videos)
+      * Would take >20 hours to label everything
