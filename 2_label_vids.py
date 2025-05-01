@@ -10,6 +10,14 @@ import torch
 
 from transformers import AutoImageProcessor, SiglipForImageClassification
 
+
+if torch.cuda.is_available():
+    device = torch.device('cuda')
+    print('using the GPU!!! 😎')
+else:
+    device = torch.device('cpu')
+    print('using the CPU!!! 😢')
+
 # ! Make sure to run `1_download_data.py` first!!!
 
 VID_DIR = './Data/YtDownloads/Sabre/'
@@ -17,7 +25,7 @@ CSV_DIR = './Data/ScoreInfo/Sabre/'
 
 # Model to read score from frames
 model_name = "prithivMLmods/Mnist-Digits-SigLIP2"
-mnist_model = SiglipForImageClassification.from_pretrained(model_name)
+mnist_model = SiglipForImageClassification.from_pretrained(model_name).to(device)
 input_processor = AutoImageProcessor.from_pretrained(model_name, use_fast=True)
 
 # info on where in the frame the score can be found
@@ -92,13 +100,17 @@ def predict_score_from_frame(frame, view_patches=False):
 
     if not l_double:
         lwhole_input = input_processor(images=Image.fromarray(lwhole_patch), return_tensors='pt')
+        lwhole_input['pixel_values'] = lwhole_input['pixel_values'].to(device)
     else:
         lhalf2_input = input_processor(images=Image.fromarray(lhalf_patch2), return_tensors='pt')
+        lhalf2_input['pixel_values'] = lhalf2_input['pixel_values'].to(device)
 
     if not r_double:
         rwhole_input = input_processor(images=Image.fromarray(rwhole_patch), return_tensors='pt')
+        rwhole_input['pixel_values'] = rwhole_input['pixel_values'].to(device)
     else:
         rhalf2_input = input_processor(images=Image.fromarray(rhalf_patch2), return_tensors='pt')
+        rhalf2_input['pixel_values'] = rhalf2_input['pixel_values'].to(device)
 
     with torch.no_grad():
         if not l_double:
