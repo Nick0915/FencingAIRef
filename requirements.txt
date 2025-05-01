@@ -1,6 +1,7 @@
 pytubefix
 opencv-python
 numpy
+pandas
 torch
 torchvision
 torchaudio
