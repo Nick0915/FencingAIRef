@@ -38,7 +38,6 @@ def horiz_pad(patch):
     return np.hstack((patch, hpad))
 
 def predict_score_from_frame(frame, view_patches=False):
-
     # the whole patch of FotL's score
     # this will be most accurate if score is 1 digit
     lwhole_patch = frame[PATCH_TOP:PATCH_BOTTOM, L_PATCH_LEFT:L_PATCH_RIGHT]
@@ -155,6 +154,8 @@ def predict_score_from_frame(frame, view_patches=False):
     return most_likely(lwhole_probs, lhalf2_probs, l_double),\
             most_likely(rwhole_probs, rhalf2_probs, r_double)
 
+DATA_COLUMNS = ['frame_no', 'ms', 'lscore', 'rscore', 'lconf', 'rconf']
+
 def get_score_from_frame(index, cap, score_info):
     num_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     if index >= num_frames:
@@ -165,8 +166,10 @@ def get_score_from_frame(index, cap, score_info):
         flag, frame = cap.read()
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         time = cap.get(cv2.CAP_PROP_POS_MSEC)
+        frame_no = cap.get(cv2.CAP_PROP_POS_FRAMES)
         (lscore, lconf), (rscore, rconf) = predict_score_from_frame(frame)
 
+        score_info.loc[index, 'frame_no'] = frame_no
         score_info.loc[index, 'ms'] = time
 
         score_info.loc[index, 'lscore'] = lscore
@@ -183,7 +186,7 @@ def main():
         cap = cv2.VideoCapture(VID_DIR + file)
         num_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
         # num_frames = 10_000
-        score_info = pd.DataFrame(columns=['ms', 'lscore', 'rscore', 'lconf', 'rconf'], index=[])
+        score_info = pd.DataFrame(columns=DATA_COLUMNS, index=[])
 
         # will contain index of all frames where the score changes
         score_change_frames = [0]
@@ -193,18 +196,14 @@ def main():
         r = num_frames - 1 # last frame
 
         # outer loop
-        while get_score_from_frame(l, cap, score_info) != get_score_from_frame(r, cap, score_info):
+        while l != num_frames - 1:
             while l != r - 1:
                 m = (l + r) // 2
                 lscore = get_score_from_frame(l, cap, score_info)
                 mscore = get_score_from_frame(m, cap, score_info)
                 if lscore == mscore:
-                    if l not in score_change_frames:
-                        score_info = score_info.drop(l)
                     l = m
                 else:
-                    if r not in score_change_frames:
-                        score_info = score_info.drop(r)
                     r = m
             score_change_frames.append(r)
             # print(f'Score changed to {score_info.loc[r, 'lscore']}-{score_info.loc[r, 'rscore']} at frame#{r}, ({score_info.loc[r, 'ms']}ms)')
@@ -212,7 +211,14 @@ def main():
             l = r
             r = num_frames - 1
 
+
+        # score_info = pd.DataFrame(columns=DATA_COLUMNS, index=[])
+        score_info.set_index('frame_no')
         score_info = score_info.sort_values('ms', ascending=True)
+
+        rows_to_drop = score_info.index.difference(score_change_frames)
+        score_info = score_info.drop(index=rows_to_drop)
+
         csv = score_info.to_csv()
         with open(CSV_DIR + f'{os.path.splitext(file)[0]}.csv', 'w') as f:
             f.write(csv)
