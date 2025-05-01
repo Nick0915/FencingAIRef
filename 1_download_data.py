@@ -3,7 +3,7 @@
 # ! Make sure `0_prepare.py` is run first!
 
 SABRE_OUTPUT_DIR = './Data/YtDownloads/Sabre/'
-MAX_VIDS = 100
+MAX_VIDS = 10
 
 # allows us downloading YT videos to local
 from pytubefix import YouTube as YT
@@ -49,4 +49,4 @@ if __name__ == '__main__':
     # read all links from txt file
     with open('./sabre_vids.txt', 'r') as links_file:
         sabre_links = [link.strip() for link in links_file.readlines()]
-        get_videos(sabre_links, 300)
+        get_videos(sabre_links, MAX_VIDS)

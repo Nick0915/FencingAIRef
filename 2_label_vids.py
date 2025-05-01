@@ -56,8 +56,10 @@ def predict_score_from_frame(frame, view_patches=False):
         lhalf_patch2 = None
 
     if view_patches:
-        cv2.imshow('left patch whole', lwhole_patch)
-        cv2.imshow('left patch half2', lhalf_patch2)
+        if not l_double:
+            cv2.imshow('left patch whole', lwhole_patch)
+        else:
+            cv2.imshow('left patch half2', lhalf_patch2)
         cv2.waitKey()
         cv2.destroyAllWindows()
 
@@ -77,8 +79,10 @@ def predict_score_from_frame(frame, view_patches=False):
         rhalf_patch2 = None
 
     if view_patches:
-        cv2.imshow('right patch whole', rwhole_patch)
-        cv2.imshow('left patch half2', rhalf_patch2)
+        if not r_double:
+            cv2.imshow('right patch whole', rwhole_patch)
+        else:
+            cv2.imshow('left patch half2', rhalf_patch2)
         cv2.waitKey()
         cv2.destroyAllWindows()
 
