@@ -194,7 +194,7 @@ def get_score_from_frame(index, cap, score_info):
 
 def main():
     files = os.listdir(VID_DIR)
-    for file in files[:20]:
+    for file in files[:5]:
         cap = cv2.VideoCapture(VID_DIR + file)
         num_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
         # num_frames = 10_000
@@ -230,6 +230,8 @@ def main():
 
         rows_to_drop = score_info.index.difference(score_change_frames)
         score_info = score_info.drop(index=rows_to_drop)
+
+        score_info.reset_index()
 
         csv = score_info.to_csv()
         with open(CSV_DIR + f'{os.path.splitext(file)[0]}.csv', 'w') as f:
