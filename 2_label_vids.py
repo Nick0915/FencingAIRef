@@ -28,6 +28,8 @@ model_name = "prithivMLmods/Mnist-Digits-SigLIP2"
 mnist_model = SiglipForImageClassification.from_pretrained(model_name).to(device)
 input_processor = AutoImageProcessor.from_pretrained(model_name, use_fast=True)
 
+mnist_model.share_memory()
+
 # info on where in the frame the score can be found
 PATCH_HEIGHT = 14
 PATCH_WIDTH = 19
@@ -192,10 +194,8 @@ def get_score_from_frame(index, cap, score_info):
 
     return score_info.loc[index, 'lscore'], score_info.loc[index, 'rscore']
 
-def main():
-    files = os.listdir(VID_DIR)
-    for file in files[:5]:
-        cap = cv2.VideoCapture(VID_DIR + file)
+def label_file(f):
+        cap = cv2.VideoCapture(VID_DIR + f)
         num_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
         # num_frames = 10_000
         score_info = pd.DataFrame(columns=DATA_COLUMNS, index=[])
@@ -219,7 +219,7 @@ def main():
                     r = m
             score_change_frames.append(r)
             # print(f'Score changed to {score_info.loc[r, 'lscore']}-{score_info.loc[r, 'rscore']} at frame#{r}, ({score_info.loc[r, 'ms']}ms)')
-            print(f'{file} progress: {100 * r / num_frames:.2f}%')
+            print(f'{f} progress: {100 * r / num_frames:.2f}%')
             l = r
             r = num_frames - 1
 
@@ -234,8 +234,21 @@ def main():
         score_info.reset_index()
 
         csv = score_info.to_csv()
-        with open(CSV_DIR + f'{os.path.splitext(file)[0]}.csv', 'w') as f:
+        with open(CSV_DIR + f'{os.path.splitext(f)[0]}.csv', 'w') as f:
             f.write(csv)
+
+import multiprocessing as mp
+
+def main():
+    files = os.listdir(VID_DIR)
+    tasks = [(f,) for f in files]
+
+    #for f in files[:5]:
+        #label_file(f)
+
+    mp.set_start_method('spawn')
+    with mp.Pool(processes=12) as pool:
+        pool.starmap(label_file, tasks)
 
 if __name__ == '__main__':
     main()
