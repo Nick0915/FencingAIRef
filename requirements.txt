@@ -1,3 +1,6 @@
+ipykernel
+ipython
+matplotlib
 pytubefix
 opencv-python
 numpy

@@ -233,7 +233,7 @@ def label_file(f):
 
         score_info.reset_index()
 
-        csv = score_info.to_csv()
+        csv = score_info.to_csv(index=False)
         with open(CSV_DIR + f'{os.path.splitext(f)[0]}.csv', 'w') as f:
             f.write(csv)
 
