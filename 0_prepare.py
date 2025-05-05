@@ -6,7 +6,7 @@ def prepare():
     if not os.path.exists('./Data'):
         os.mkdir('./Data')
 
-    directories = ['YtDownloads', 'YtDownloads/Sabre', 'ScoreInfo', 'ScoreInfo/Sabre']
+    directories = ['YtDownloads', 'YtDownloads/Sabre', 'ScoreInfo', 'ScoreInfo/Sabre', 'Clips', 'Clips/Sabre']
     for folder in directories:
         desired = f'./Data/{folder}'
         if not os.path.exists(desired):
