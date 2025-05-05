@@ -3,7 +3,6 @@
 import os
 import pandas as pd
 import cv2
-import ffmpeg
 import numpy as np
 
 CLIP_LENGTH_MS = 3000
@@ -32,44 +31,60 @@ CLIP_DIR = './Data/Clips/Sabre/'
 
 csvs = os.listdir(CSV_DIR)
 
-# first, define a clip start and end in the csv for each score event,
-# as well was which lights lit up
+nominal = 0
+exceptional = 0
+
 for csv_file in csvs:
     info = pd.read_csv(CSV_DIR + csv_file, header=0)
-    info = info.drop(columns=['clip_start_ms', 'clip_end_ms', 'left_lit', 'right_lit'], errors='ignore')
+    info = info.drop(columns=[
+        'Unnamed: 0', 'Unnamed: 0.1', 'nominal',
+        'clip_start_ms', 'clip_end_ms', 'left_lit', 'right_lit'
+    ], errors='ignore')
+    info.insert(6, 'nominal', True)
     info.insert(7, 'clip_start_ms', -1.0)
     info.insert(8, 'clip_end_ms', -1.0)
     info.insert(9, 'left_lit', False)
     info.insert(10, 'right_lit', False)
+    info['frame_no'] = info['frame_no'].astype(int)
 
-    # if 'clip_start_ms' not in info.columns and \
-    #     'clip_end_ms' not in info.columns and \
-    #     'left_lit' not in info.columns and \
-    #     'right_lit' not in info.columns:
-    #     info.insert(7, 'clip_start_ms', -1.0)
-    #     info.insert(8, 'clip_end_ms', -1.0)
-    #     info.insert(9, 'left_lit', False)
-    #     info.insert(10, 'right_lit', False)
-    # else:
-    #     # skip csvs that already have it
-    #     continue
+    prev_lscore, prev_rscore = 0, 0
 
     video_file = os.path.splitext(csv_file)[0] + '.mp4'
-
     cap = cv2.VideoCapture(VID_DIR + video_file)
     for i, row in info.iterrows():
-        if i == 0:
-            # skip over the "first" score detection, which is really just the first frame
-            continue
-        if not row['nominal']:
-            # skip over abnormal score events
+        #region clean up based on scores
+        lscore, rscore = row['lscore'], row['rscore']
+        if prev_lscore > lscore or prev_rscore > rscore:
+            # weed out scores that get LOWER some how (not possible in nomral fencing)
+            exceptional += 1
+            info.iloc[i, 6] = False
+        elif lscore > prev_lscore + 1 or rscore > prev_rscore + 1:
+            # weed out scores that jump by more than ONE (not possible without a red card, we aren't training on this scenario)
+            exceptional += 1
+            info.iloc[i, 6] = False
+        elif lscore > prev_lscore and rscore > prev_rscore:
+            # weed out situations where BOTH fencers score a point (not possible without a red card, we aren't training on this scenario)
+            exceptional += 1
+            info.iloc[i, 6] = False
+        elif row['lconf'] < 0.5 or row['rconf'] < 0.5:
+            # weed out low confidence scores so they don't put bad data into the model
+            exceptional += 1
+            info.iloc[i, 6] = False
+        else:
+            nominal += 1
+
+        prev_lscore, prev_rscore = lscore, rscore
+        #endregion
+
+        #region clean up based on lights
+        if not info.iloc[i, 6]:
+            # don't bother with abnormal score events
             continue
 
         cap.set(cv2.CAP_PROP_POS_FRAMES, row['frame_no'])
 
         earliest_lit_frame = row['frame_no']
         left_lit, right_lit = False, False
-
         while True:
             flags, frame = cap.read()
 
@@ -116,7 +131,10 @@ for csv_file in csvs:
                 info.iloc[i, 10] = right_lit
 
             cap.set(cv2.CAP_PROP_POS_FRAMES, pos_frames - BACKWARD_JUMP_FRAMES)
+        #endregion
 
     csv_text = info.to_csv(index=False)
     with open(CSV_DIR + csv_file, 'w') as f:
         f.write(csv_text)
+
+print(f'{exceptional = }, {nominal = }, %exceptional = {exceptional / (exceptional + nominal) * 100 :.2f}%, %nominal = {nominal / (exceptional + nominal) * 100 :.2f}%')

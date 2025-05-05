@@ -35,11 +35,13 @@ I will track things such as:
   * This algorithm assumes that scores only ever increase monotonicly (ideally, they do), but they may jump around weirdly in the video
     * Due to ref mistakes, tech issues, cards, overturning points, etc.
     * So we are losing some potentially useful training points, but it's pretty uncommon so not a big deal
-  * Finally, check the validity of these labels (in `2.1_check_labels.py`)
+  * Finally, check the validity of these labels (in `2.1_clean_up_labels.py`) and clean them up
     * Fix up some stuff with the csv formatting
     * Importantly: added `nominal` column which is true if that score change made sense. We want to weed out the following:
       * Scores going down (ref mistake, we shouldn't train on this)
       * Scores jumping up by more than one (ref mistake OR card given, we shouldn't train on this)
       * Both fencers scoring a point (ref mistake OR card given, we shouldn't train on this)
       * Low confidence score detection (don't want to train on potentially incorrect data)
+    * Also importantly: crop away the end of the clip based on the difference between when the light went off and when the ref increased the score
+      * Will improve performance because there's less redundant frames
 3) Use [MoveNet](https://www.kaggle.com/models/google/movenet/)'s multi-person estimation to get keypoints for fencers
