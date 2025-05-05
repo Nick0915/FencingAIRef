@@ -1,13 +1,15 @@
 ipykernel
 ipython
 matplotlib
+imageio
 pytubefix
 opencv-python
 numpy
 pandas
 torch
-torchvision
-torchaudio
+tensorflow
+tensorflow-hub
+tensorflow-docs
 pillow
 transformers
 imutils

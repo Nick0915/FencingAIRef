@@ -42,4 +42,4 @@ I will track things such as:
       * Scores jumping up by more than one (ref mistake OR card given, we shouldn't train on this)
       * Both fencers scoring a point (ref mistake OR card given, we shouldn't train on this)
       * Low confidence score detection (don't want to train on potentially incorrect data)
-3) Use [OpenPose](https://github.com/CMU-Perceptual-Computing-Lab/openpose?tab=readme-ov-file)'s 2D multi-person estimation to get keypoints for fencers
+3) Use [MoveNet](https://www.kaggle.com/models/google/movenet/)'s multi-person estimation to get keypoints for fencers
