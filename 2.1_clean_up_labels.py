@@ -4,13 +4,15 @@ import os
 import pandas as pd
 import cv2
 import numpy as np
+import multiprocessing as mp
 
 CLIP_LENGTH_MS = 3000
 
 # through manual counting, each light lasts at least 50 frames,
 # so jumping backward by 20 frames at a time guarantees we won't miss a light
-BACKWARD_JUMP_FRAMES = 20
-MAX_BACKWARD_JUMP_MS = 5000
+BACKWARD_JUMP_FRAMES = 5
+# if we have to jump back more than 7.5 seconds from a score increase, we should probably discard that clip
+MAX_BACKWARD_JUMP_MS = 7_500
 
 # bounding boxes for score lights
 PATCH_HEIGHT = 5
@@ -31,10 +33,9 @@ CLIP_DIR = './Data/Clips/Sabre/'
 
 csvs = os.listdir(CSV_DIR)
 
-nominal = 0
-exceptional = 0
+def clean_up_file(csv_file):
+    exceptional, nominal, time_saved = 0, 0, 0.
 
-for csv_file in csvs:
     info = pd.read_csv(CSV_DIR + csv_file, header=0)
     info = info.drop(columns=[
         'Unnamed: 0', 'Unnamed: 0.1', 'nominal',
@@ -77,13 +78,13 @@ for csv_file in csvs:
         #endregion
 
         #region clean up based on lights
-        if not info.iloc[i, 6]:
+        if i == 0 or not info.iloc[i, 6]:
             # don't bother with abnormal score events
             continue
 
         cap.set(cv2.CAP_PROP_POS_FRAMES, row['frame_no'])
 
-        earliest_lit_frame = row['frame_no']
+        earliest_lit_ms = row['ms']
         left_lit, right_lit = False, False
         while True:
             flags, frame = cap.read()
@@ -114,27 +115,63 @@ for csv_file in csvs:
             # searching too far back yet haven't found a lit up frame... probably abnormal score event
             if pos_ms < row['ms'] - MAX_BACKWARD_JUMP_MS:
                 info.iloc[i, 6] = False
+                exceptional += 1
+                nominal -= 1
                 break
+
+            # info.insert(6, 'nominal', True)
+            # info.insert(7, 'clip_start_ms', -1.0)
+            # info.insert(8, 'clip_end_ms', -1.0)
+            # info.insert(9, 'left_lit', False)
+            # info.insert(10, 'right_lit', False)
 
             # if it's a lit frame
             if left_colored_on or right_colored_on:
-                earliest_lit_frame = pos_frames
+                earliest_lit_ms = pos_ms
                 left_lit = left_lit or left_colored_on
                 right_lit = right_lit or right_colored_on
-            elif (left_lit or right_lit) and (not left_colored_on) and (not right_colored_on):
-                # if we've seen a lit frame ahead of us but the current frame isn't lit,
+
+            # if (left_lit or right_lit) and (not left_colored_on) and (not right_colored_on):
+            if (left_lit or right_lit) and (int(left_lit) + int(right_lit) > int(left_colored_on) + int(right_colored_on)):
+                # if we've seen a lit frame ahead of us but number of lights went down,
                 # we've searched too far backward, the last searched frame is the earliest lit frame
-                info.iloc[i, 8] = pos_ms
-                info.iloc[i, 7] = np.max((pos_ms - CLIP_LENGTH_MS, 0.)) # can't have negative time
+                info.iloc[i, 8] = earliest_lit_ms
+                info.iloc[i, 7] = np.max((earliest_lit_ms - CLIP_LENGTH_MS, 0.)) # can't have negative time
 
                 info.iloc[i, 9] = left_lit
                 info.iloc[i, 10] = right_lit
+                break
 
             cap.set(cv2.CAP_PROP_POS_FRAMES, pos_frames - BACKWARD_JUMP_FRAMES)
+
+        if info.iloc[i, 6]:
+            time_saved += row['ms'] - info.iloc[i, 8]
         #endregion
+
+        progress = i / info.shape[0]
+        print(f'{csv_file}: {progress * 100 :.2f}%')
 
     csv_text = info.to_csv(index=False)
     with open(CSV_DIR + csv_file, 'w') as f:
         f.write(csv_text)
 
-print(f'{exceptional = }, {nominal = }, %exceptional = {exceptional / (exceptional + nominal) * 100 :.2f}%, %nominal = {nominal / (exceptional + nominal) * 100 :.2f}%')
+    print(f'finished processing {csv_file}')
+    return exceptional, nominal, time_saved
+
+
+if __name__ == '__main__':
+    files = os.listdir(CSV_DIR)
+    tasks = [(f,) for f in files]
+
+    nominal, exceptional, time_saved = 0, 0, 0
+
+    # mp.set_start_method('spawn')
+    with mp.Pool(processes=20) as pool:
+        for exceptional_, nominal_, time_saved_ in pool.starmap(clean_up_file, tasks):
+            nominal += nominal_
+            exceptional += exceptional_
+            time_saved += time_saved_
+    # [clean_up_file(f) for f in files[:1]]
+
+    print(f'{exceptional = }, {nominal = }, %exceptional = {exceptional / (exceptional + nominal) * 100 :.2f}%, %nominal = {nominal / (exceptional + nominal) * 100 :.2f}%')
+    print(f'{time_saved = :.2f}ms, {time_saved / nominal :.2f}ms per nominal event')
