@@ -45,8 +45,12 @@ I will track things such as:
     * Also importantly: crop away the end of the clip based on the difference between when the light went off and when the ref increased the score
       * Will improve performance because there's less redundant frames
       * Also throw out ones where the time difference between the lights going off and the score incrementing is very large, since it may be something weird
-    * Statistics from a smaller sample:
-      * 75% of clips were nominal (AKA nothing weird happened), rest were labeled not nominal and thrown out
-      * Shaved off an average of 3ish seconds from the end of clips (useless info since fencing stops in this time)
+    * Statistics:
+      * 84.71% of clips were nominal (AKA nothing weird happened), rest were labeled not nominal and thrown out
+      * Shaved off an average of 2.65 seconds from the end of clips (useless info since fencing stops in this time)
+      * We totaled 11,789 clips to train on
+        * With 625 total videos, that's around 19 clips per video
 3) Cut up the video into clips based on the previous step
   * Also flip the videos horizontally to increase the number of datapoints
+    * NOTE: currently this is not implemented as I cannot figure out how to get ffmpeg to use the h264 codec on hopper (if I flip the video, I need to use an actual codec, not just streamcopy)
+  * This step (with only the copy encoding, no flipping) took only 30 seconds on hopper! 64 cores

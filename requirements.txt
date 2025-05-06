@@ -9,9 +9,9 @@ ffmpeg-python
 numpy
 pandas
 torch
-tensorflow
-tensorflow-hub
-tensorflow-docs
+# tensorflow
+# tensorflow-hub
+# tensorflow-docs
 pillow
 transformers
 imutils

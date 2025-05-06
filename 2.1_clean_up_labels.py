@@ -38,21 +38,21 @@ def clean_up_file(csv_file):
 
     info = pd.read_csv(CSV_DIR + csv_file, header=0)
 
-    if 'clip_start_ms' in info.columns:
-        print(f'skipping {csv_file} (already processed)')
-        return 0, 0, 0
-    else:
-        info = info.drop(columns=[
-            'Unnamed: 0', 'Unnamed: 0.1', 'nominal',
-            'clip_start_ms', 'clip_end_ms', 'left_lit', 'right_lit'
-        ], errors='ignore')
+    # if 'clip_start_ms' in info.columns:
+    #     print(f'skipping {csv_file} (already processed)')
+    #     return 0, 0, 0
+    # else:
+    info = info.drop(columns=[
+        'Unnamed: 0', 'Unnamed: 0.1', 'nominal',
+        'clip_start_ms', 'clip_end_ms', 'left_lit', 'right_lit'
+    ], errors='ignore')
 
-        info.insert(6, 'nominal', True)
-        info.insert(7, 'clip_start_ms', -1.0)
-        info.insert(8, 'clip_end_ms', -1.0)
-        info.insert(9, 'left_lit', False)
-        info.insert(10, 'right_lit', False)
-        info['frame_no'] = info['frame_no'].astype(int)
+    info.insert(6, 'nominal', True)
+    info.insert(7, 'clip_start_ms', -1.0)
+    info.insert(8, 'clip_end_ms', -1.0)
+    info.insert(9, 'left_lit', False)
+    info.insert(10, 'right_lit', False)
+    info['frame_no'] = info['frame_no'].astype(int)
 
     prev_lscore, prev_rscore = 0, 0
 
@@ -178,7 +178,7 @@ if __name__ == '__main__':
     nominal, exceptional, time_saved = 0, 0, 0
 
     mp.set_start_method('spawn')
-    with mp.Pool(processes=1) as pool:
+    with mp.Pool(processes=12) as pool:
         for exceptional_, nominal_, time_saved_ in pool.starmap(clean_up_file, tasks):
             nominal += nominal_
             exceptional += exceptional_
