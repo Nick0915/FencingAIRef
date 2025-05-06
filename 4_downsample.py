@@ -56,7 +56,7 @@ def downsample_clip(in_file):
 
     proc = sp.Popen(command, stdin=sp.PIPE, stderr=sp.PIPE)
 
-    frames = []
+    # frames = []
 
     frame_no = 0
     while True:
@@ -72,10 +72,10 @@ def downsample_clip(in_file):
             break
         frame_no += 1
 
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    writer = cv2.VideoWriter(out_file, fourcc, float(downsampled_fps), frame_size)
-    for frame in frames:
-        writer.write(frame)
+    # fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    # writer = cv2.VideoWriter(out_file, fourcc, float(downsampled_fps), frame_size)
+    # for frame in frames:
+    #     writer.write(frame)
 
     # writer.release()
 

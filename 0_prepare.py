@@ -18,7 +18,11 @@ def prepare():
         'DownsampledClips',
         'DownsampledClips/Sabre',
         'DownsampledClips/Sabre/Left',
-        'DownsampledClips/Sabre/Right'
+        'DownsampledClips/Sabre/Right',
+        'OverlaidClips',
+        'OverlaidClips/Sabre',
+        'OverlaidClips/Sabre/Left',
+        'OverlaidClips/Sabre/Right',
     ]
     for folder in directories:
         desired = f'./Data/{folder}'
