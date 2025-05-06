@@ -54,3 +54,7 @@ I will track things such as:
   * Also flip the videos horizontally to increase the number of datapoints
     * NOTE: currently this is not implemented as I cannot figure out how to get ffmpeg to use the h264 codec on hopper (if I flip the video, I need to use an actual codec, not just streamcopy)
   * This step (with only the copy encoding, no flipping) took only 30 seconds on hopper! 64 cores
+4) Downsample the clips
+  * Specifically, downsample the first lot, but keep original framerate for the last second or so
+    * The last part of the clip contains a lot of bladework which is useful for determining who gets the point.
+    The rest of the clip is important too, but can be at a lower framerate and still make sense
