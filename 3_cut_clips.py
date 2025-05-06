@@ -34,8 +34,8 @@ def trim(in_file, out_file, start_ms, end_ms, flipped=False):
     output = ffmpeg.output(
         stream,
         out_file,
-        vcodec='copy',
-        # vcodec='h264',
+        # vcodec='copy',
+        vcodec='h264',
         loglevel='quiet'
     ).run()
 
@@ -58,11 +58,11 @@ def clip_video(csv_file):
             loser = 'Right'
 
         orig_clip_file = CLIP_DIR + f'{winner}/' + os.path.splitext(csv_file)[0] + f'_clip{i:02d}_o_{winner}' + '.mp4'
-        # flipped_clip_file = CLIP_DIR + f'{loser}/' + os.path.splitext(csv_file)[0] + f'_clip{i:02d}_f_{loser}' + '.mp4'
+        flipped_clip_file = CLIP_DIR + f'{loser}/' + os.path.splitext(csv_file)[0] + f'_clip{i:02d}_f_{loser}' + '.mp4'
 
         trim(video_file, orig_clip_file, row['clip_start_ms'], row['clip_end_ms'], flipped=False)
         # for now, no flipped vids
-        # trim(video_file, flipped_clip_file, row['clip_start_ms'], row['clip_end_ms'], flipped=True)
+        trim(video_file, flipped_clip_file, row['clip_start_ms'], row['clip_end_ms'], flipped=True)
         # print(f'{video_file}: {(i + 1) / info.shape[0] * 100:.2f}%')
 
     print(f'finished cutting up {video_file}')

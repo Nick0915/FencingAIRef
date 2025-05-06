@@ -15,7 +15,8 @@ I will track things such as:
 
 ## Steps
 * Started by [forking](https://github.com/Nick0915/FencingAIRef) and cloning the [original repo](https://github.com/sholtodouglas/fencing-AI)
-  * This serves as inspiration, but we take different approaches
+  * This serves as inspiration/reference, but we take slightly different approaches
+  * I aim to improve his performance by using a new model
 
 0) Prepare workspace organization with a script (`0_prepare.py`)
 1) Download videos from YouTube (`1_download_data.py`)
@@ -50,11 +51,19 @@ I will track things such as:
       * Shaved off an average of 2.65 seconds from the end of clips (useless info since fencing stops in this time)
       * We totaled 11,789 clips to train on
         * With 625 total videos, that's around 19 clips per video
-3) Cut up the video into clips based on the previous step
+3) Cut up the video into clips based on the previous step (`3_cut_clips.py`)
   * Also flip the videos horizontally to increase the number of datapoints
     * NOTE: currently this is not implemented as I cannot figure out how to get ffmpeg to use the h264 codec on hopper (if I flip the video, I need to use an actual codec, not just streamcopy)
+      * ALSO NOTE: somehow I did flip all the videos??? I guess I forgot I did that?
+        I uncommented some lines in `3_cut_clips.py` to reflect this but I'm not gonna run the code again so no guarantee that file works as is. Check previous commits for a working one that doesn't have the flipping.
+        * My thinking is I somehow accidentally ran this in the background of my desktop computer, which does all the codec stuff fine, just a little slowly. I probably forgot I ran it and forgot to stop running it overnight. Ended up transferring all the clips to hopper using GLOBUS which was actually pretty fast (~3.5 min).
+        * Now, our clip count is up to 21,203 (not sure why its not an exact x2 of the original count but I'm not complaining too much)
   * This step (with only the copy encoding, no flipping) took only 30 seconds on hopper! 64 cores
-4) Downsample the clips
-  * Specifically, downsample the first lot, but keep original framerate for the last second or so
+4) Downsample the clips (`4_downsample.py`)
+  * Specifically, downsample the first part, but keep original framerate for the last second or so
     * The last part of the clip contains a lot of bladework which is useful for determining who gets the point.
     The rest of the clip is important too, but can be at a lower framerate and still make sense
+  * Again, couldn't use complex filtergraphs on hopper, so I did this on my PC and just file transferred it to hopper through GLOBUS
+    * ~7 mins to process, ~3.75 mins to transfer
+  * NOTE: the ffmpeg command from this file is HEAVILY inspired (read: basically copied) from the reference project since I don't know ffmpeg commands that well. Full credit to Sholto Douglas
+5) Overlay optical flow onto the clips (`5_overlay_flow.py`)
