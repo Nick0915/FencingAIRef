@@ -54,7 +54,7 @@ def get_videos(links, num: int = None):
 
     tasks = [(vid_id, link) for vid_id, link in enumerate(links[:num])]
 
-    with mp.Pool(processes=25) as pool:
+    with mp.Pool(processes=12) as pool:
         pool.starmap(download_vid, tasks)
 
 if __name__ == '__main__':

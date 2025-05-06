@@ -38,7 +38,7 @@ def clean_up_file(csv_file):
 
     info = pd.read_csv(CSV_DIR + csv_file, header=0)
 
-    if 'nominal' in info.columns:
+    if 'clip_start_ms' in info.columns:
         print(f'skipping {csv_file} (already processed)')
         return 0, 0, 0
     else:
@@ -125,6 +125,12 @@ def clean_up_file(csv_file):
                 nominal -= 1
                 break
 
+            if pos_ms <= 0 or pos_frames <= 0:
+                info.iloc[i, 6] = False
+                exceptional += 1
+                nominal -= 1
+                break
+
             # info.insert(6, 'nominal', True)
             # info.insert(7, 'clip_start_ms', -1.0)
             # info.insert(8, 'clip_end_ms', -1.0)
@@ -172,7 +178,7 @@ if __name__ == '__main__':
     nominal, exceptional, time_saved = 0, 0, 0
 
     mp.set_start_method('spawn')
-    with mp.Pool(processes=64) as pool:
+    with mp.Pool(processes=1) as pool:
         for exceptional_, nominal_, time_saved_ in pool.starmap(clean_up_file, tasks):
             nominal += nominal_
             exceptional += exceptional_

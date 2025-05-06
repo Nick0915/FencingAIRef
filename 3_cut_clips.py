@@ -34,6 +34,8 @@ def trim(in_file, out_file, start_ms, end_ms, flipped=False):
     output = ffmpeg.output(
         stream,
         out_file,
+        vcodec='h264',
+        loglevel='quiet'
     ).run()
 
 def clip_video(csv_file):
@@ -59,13 +61,16 @@ def clip_video(csv_file):
 
         trim(video_file, orig_clip_file, row['clip_start_ms'], row['clip_end_ms'], flipped=False)
         trim(video_file, flipped_clip_file, row['clip_start_ms'], row['clip_end_ms'], flipped=True)
-        pass
+        print(f'{video_file}: {(i + 1) / info.shape[0] * 100:.2f}%')
+
+    print(f'finished cutting up {video_file}')
+
 
 if __name__ == '__main__':
     files = os.listdir(CSV_DIR)
     tasks = [(f,) for f in files]
 
-    # with mp.Pool(processes=64) as pool:
-    #     pool.starmap(cut_video, tasks)
-    #     print(f'finished processing all files in {CSV_DIR}')
-    [clip_video(f) for f in files[:1]]
+    with mp.Pool(processes=12) as pool:
+        pool.starmap(clip_video, tasks)
+        print(f'finished processing all files in {CSV_DIR}')
+    # [clip_video(f) for f in files[:1]]
