@@ -54,7 +54,7 @@ def downsample_clip(in_file):
         out_file
     ]
 
-    # proc = sp.Popen(command, stdin=sp.PIPE, stderr=sp.PIPE)
+    proc = sp.Popen(command, stdin=sp.PIPE, stderr=sp.PIPE)
 
     frames = []
 
@@ -63,11 +63,11 @@ def downsample_clip(in_file):
         ret, frame = cap.read()
         if ret:
             if frame_no <= downsample_until and frame_no % downsample_by == 0:
-                frames.append(frame)
-                # proc.stdin.write(frame.tobytes())
+                # frames.append(frame)
+                proc.stdin.write(frame.tobytes())
             elif frame_no > downsample_until:
-                frames.append(frame)
-                # proc.stdin.write(frame.tobytes())
+                # frames.append(frame)
+                proc.stdin.write(frame.tobytes())
         else:
             break
         frame_no += 1
@@ -77,10 +77,10 @@ def downsample_clip(in_file):
     for frame in frames:
         writer.write(frame)
 
-    writer.release()
+    # writer.release()
 
-    # proc.stdin.close()
-    # proc.stderr.close()
+    proc.stdin.close()
+    proc.stderr.close()
     # proc.kill()
 
     cap.release()
