@@ -21,7 +21,7 @@ I will track things such as:
 1) Download videos from YouTube (`1_download_data.py`)
   * We already have a list of sabre videos of the same format, so we'll start with this for now
   * Used a multiprocessing pool to download many videos in parallel (100 videos in ~ 1m20s)
-2) Label keyframes in video where the score changes, and what the score is at that point (`2_label_vids.py`)
+2) Label key frames in video where the score changes, and what the score is at that point (`2_label_vids.py`)
   * First, assume we have a function that can spit out the score based on reading one frame
   * We develop an algorithm that binary-searches for the exact frame these scores change1
   * Then, implement the assumed function using an off-the-shelf huggingface model trained on MNIST digits
@@ -44,4 +44,9 @@ I will track things such as:
       * Low confidence score detection (don't want to train on potentially incorrect data)
     * Also importantly: crop away the end of the clip based on the difference between when the light went off and when the ref increased the score
       * Will improve performance because there's less redundant frames
-3) Use [MoveNet](https://www.kaggle.com/models/google/movenet/)'s multi-person estimation to get keypoints for fencers
+      * Also throw out ones where the time difference between the lights going off and the score incrementing is very large, since it may be something weird
+    * Statistics from a smaller sample:
+      * 75% of clips were nominal (AKA nothing weird happened), rest were labeled not nominal and thrown out
+      * Shaved off an average of 3ish seconds from the end of clips (useless info since fencing stops in this time)
+3) Cut up the video into clips based on the previous step
+  * Also flip the videos horizontally to increase the number of datapoints

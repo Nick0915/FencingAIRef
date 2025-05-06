@@ -4,6 +4,8 @@ matplotlib
 imageio
 pytubefix
 opencv-python
+ffmpeg
+ffmpeg-python
 numpy
 pandas
 torch
