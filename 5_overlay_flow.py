@@ -20,7 +20,10 @@ L_OVERLAID_DIR = './Data/OverlaidClips/Sabre/Left/'
 R_OVERLAID_DIR = './Data/OverlaidClips/Sabre/Right/'
 
 def overlay_clip(in_file):
-    out_file = L_OVERLAID_DIR + os.path.splitext(in_file)[0].split('/')[-1] + '_overlaid.mp4'
+    if 'Left' in in_file:
+        out_file = L_OVERLAID_DIR + os.path.splitext(in_file)[0].split('/')[-1] + '_overlaid.mp4'
+    else:
+        out_file = R_OVERLAID_DIR + os.path.splitext(in_file)[0].split('/')[-1] + '_overlaid.mp4'
 
     # skip files that were already processed
     if os.path.exists(out_file):
