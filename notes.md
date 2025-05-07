@@ -57,7 +57,7 @@ I will track things such as:
         * ALSO NOTE: somehow I did flip all the videos??? I guess I forgot I did that?
           I uncommented some lines in `3_cut_clips.py` to reflect this but I'm not gonna run the code again so no guarantee that file works as is. Check previous commits for a working one that doesn't have the flipping.
           * My thinking is I somehow accidentally ran this in the background of my desktop computer, which does all the codec stuff fine, just a little slowly. I probably forgot I ran it and forgot to stop running it overnight. Ended up transferring all the clips to hopper using GLOBUS which was actually pretty fast (~3.5 min).
-          * Now, our clip count is up to 21,203 (not sure why its not an exact x2 of the original count but I'm not complaining too much)
+          * Now, our clip count is up to 21,200 (not sure why its not an exact x2 of the original count but I'm not complaining too much)
     * This step (with only the copy encoding, no flipping) took only 30 seconds on hopper! 64 cores
 4) Downsample the clips (`4_downsample.py`)
     * Specifically, downsample the first part, but keep original framerate for the last second or so
