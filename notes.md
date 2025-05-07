@@ -33,7 +33,7 @@ I will track things such as:
       * Would take >20 hours to label everything
       * Ended up doing this on hopper with multiprocessing
         * Forgot to time it, but it took <8 hours (that's how long I salloc'd for)
-    * This algorithm assumes that scores only ever increase monotonicly (ideally, they do), but they may jump around weirdly in the video
+    * This algorithm assumes that scores only ever increase monotonically (ideally, they do), but they may jump around weirdly in the video
       * Due to ref mistakes, tech issues, cards, overturning points, etc.
       * So we are losing some potentially useful training points, but it's pretty uncommon so not a big deal
     * Finally, check the validity of these labels (in `2.1_clean_up_labels.py`) and clean them up
@@ -70,6 +70,7 @@ I will track things such as:
     * I dreaded this part because, again, I can't do it on hopper (due to the codec stuff).
       It also seems like more core would've helped speed this up!!!
       ETA on my destop PC: 3+ hours... I guess I can use the time to get started on my report/presentation
+      * Transfer time to hopper: ~4 min
     * Also, in the previous step I accidentally encoded the videos in the original FPS, so although they are downsampled, it just speeds up the end instead of slowing down the beginning
       * This wouldn't matter for the model since it is fed frame-by-frame anyway, but it just makes manually watching the videos take longer
       * So, I fix that in this step right before calculating the optical flow, so now the beginning of clips is fast whereas the end is normal speed, making watching the clips go faster for manual checks
