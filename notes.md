@@ -49,8 +49,8 @@ I will track things such as:
       * Statistics:
         * 84.71% of clips were nominal (AKA nothing weird happened), rest were labeled not nominal and thrown out
         * Shaved off an average of 2.65 seconds from the end of clips (useless info since fencing stops in this time)
-        * We totaled 11,789 clips to train on
-          * With 625 total videos, that's around 19 clips per video
+        * We totaled 10,600 clips to train on
+          * With 625 total videos, that's around 17 clips per video
 3) Cut up the video into clips based on the previous step (`3_cut_clips.py`)
     * Also flip the videos horizontally to increase the number of datapoints
       * NOTE: currently this is not implemented as I cannot figure out how to get ffmpeg to use the h264 codec on hopper (if I flip the video, I need to use an actual codec, not just streamcopy)
