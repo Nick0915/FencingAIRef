@@ -127,7 +127,7 @@ if __name__ == '__main__':
 
     total = len(files)
 
-    tasks = [(f,) for f in files[:1000]]
+    tasks = [(f,) for f in files]
 
     with mp.Pool(processes=12) as pool:
         pool.starmap(overlay_clip, tasks)
