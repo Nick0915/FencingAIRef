@@ -9,9 +9,11 @@ ffmpeg-python
 numpy
 pandas
 torch
+timm
 # tensorflow
 # tensorflow-hub
 # tensorflow-docs
 pillow
 transformers
 imutils
+prettyprint

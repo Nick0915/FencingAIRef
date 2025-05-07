@@ -23,6 +23,10 @@ def prepare():
         'OverlaidClips/Sabre',
         'OverlaidClips/Sabre/Left',
         'OverlaidClips/Sabre/Right',
+        'Vectors',
+        'Vectors/Sabre',
+        'Vectors/Sabre/Left',
+        'Vectors/Sabre/Right',
     ]
     for folder in directories:
         desired = f'./Data/{folder}'
