@@ -44,7 +44,7 @@ def overlay_clip(in_file):
         '-i', '-',
         '-an',
         '-vcodec', 'h264',
-        '-crf', '10',
+        # '-crf', '10',
         '-b:v', '5000k',
         '-v', 'quiet',
         out_file
