@@ -77,9 +77,8 @@ I will track things such as:
 6) Use Inception-v4 model to turn videos into feature-vector sequences (`6_videos_to_features.py`)
     * Manually removed a couple vectors for being too small (not enough frames), brought the count down to 21,194 clips
     * Finally a step I can use hopper for again, took around 3 hours
-    * Also created a pytorch `Dataset` class (`6.8_dataloader.py`)
-7) The magnum opus: actually classify all the vectors into left (1) or right (0) with an RNN (`7_classify.py`)
-    * The RNN is actually in (`6.9_rnn.py`)
-      * Justification is that `7` should depend on smaller numbers lol
-      * First architecture: LSTM + Multi-layer RNN (just like Douglas's original idea)
+    * Also created a pytorch `Dataset` class (`dataloader.py`)
+7) The magnum opus: actually train the classifier (`7_train_classifier.py`)
+    * The model is in (`rnn.py`)
+      * First architecture: LSTM + Multi-layer RNN (similar to Douglas's original idea)
 

@@ -1,8 +1,9 @@
 
-# ! #THIS FILE SHOULD NOT BE RUN!!! IT IS A DEPENDENCY FOR A LATER FILE
+# ! #THIS FILE SHOULD NOT BE RUN!!! IT IS A DEPENDENCY FOR ANOTHER FILE
 
 import os
 import pandas as pd
+import numpy as np
 import torch
 from torch.utils.data import Dataset, DataLoader
 
@@ -30,13 +31,19 @@ class ClipVectorDataset(Dataset):
 
     def __getitem__(self, idx):
         vec = torch.load(self.files[idx])
-        label = 1 if 'Left' in self.files[idx] else 0
+        # label = 1 if 'Left' in self.files[idx] else 0
+        # label = np.zeros(2, dtype='float32')
+        if 'Left' in self.files[idx]:
+            label = 0
+        else:
+            label = 1
+        # label[0] += float('Left' in self.files[idx])
+        # label[1] += float('Right' in self.files[idx])
 
         return vec, label
 
     def get(self, idx):
-        vec = torch.load(self.files[idx])
-        label = 1 if 'Left' in self.files[idx] else 0
+        vec, label = self[idx]
         file_name = self.files[idx]
 
         return vec, label, file_name
@@ -45,7 +52,11 @@ class ClipVectorDataset(Dataset):
         # each sample's shape is (F, D)
         seq_lengths = [sample.shape[0] for sample, label in rows]
         padded = torch.nn.utils.rnn.pad_sequence([sample for sample, label in rows], batch_first=True)
-        packed = torch.nn.utils.rnn.pack_padded_sequence(padded, seq_lengths, batch_first=True, enforce_sorted=False)
+        packed = torch.nn.utils.rnn.pack_padded_sequence(
+            padded, seq_lengths,
+            batch_first=True,
+            enforce_sorted=False
+        )
 
         labels = torch.tensor([label for sample, label in rows])
 
