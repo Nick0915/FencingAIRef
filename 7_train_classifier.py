@@ -44,8 +44,10 @@ def evaluate(
             inputs, labels = batch
             actual_batch_len = len(inputs.sorted_indices)
 
-            output = model(inputs.to(device)).cpu()
-            losses.append(criterion(output, labels).item() / actual_batch_len)
+            outputs = model.forward(inputs.to(device)).cpu() # shape: (N, 2), N = batch size
+            # logits = torch.nn.functional.softmax(outputs)
+            loss = criterion(outputs.flatten(), labels)
+            losses.append(loss.item() / actual_batch_len)
 
     return np.mean(losses)
 
@@ -58,7 +60,7 @@ def train(
 ):
 
     if criterion is None:
-        criterion = torch.nn.NLLLoss()
+        criterion = torch.nn.BCEWithLogitsLoss()
     
     if optimizer is None:
         optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
@@ -92,8 +94,8 @@ def train(
             actual_batch_len = len(inputs.sorted_indices)
 
             outputs = model.forward(inputs.to(device)).cpu() # shape: (N, 2), N = batch size
-            # logits = torch.nn.LogSoftmax(dim=1)
-            loss = criterion(outputs, labels)
+            # logits = torch.nn.functional.softmax(outputs)
+            loss = criterion(outputs.flatten(), labels)
             batch_losses.append(loss.item() / actual_batch_len)
 
             loss.backward()
@@ -136,33 +138,34 @@ if __name__ == '__main__':
     # train/test split of 80/20
     train_set, val_set = random_split(all_data, [.9, .1])
 
-    # input_size = train_set[0][0].shape[1]
-    # num_rnn_layers = 4
-    # lstm_hidden_size = 500
-    # rnn_hidden_size = 250
-    # dropout=.2
-
-    # model = rnn.LSTM_MultiRNN(
-    #     input_size,
-    #     num_rnn_layers,
-    #     lstm_hidden_size,
-    #     rnn_hidden_size,
-    #     dropout
-    # ).to(device)
-
     input_size = train_set[0][0].shape[1]
-    num_lstm_layers = 2
-    lstm_hidden_size = 375
+    num_rnn_layers = 4
+    lstm_hidden_size = 500
+    rnn_hidden_size = 250
     dropout=.2
 
-    model = rnn.MultiLSTM(
+    model = rnn.LSTM_MultiRNN(
         input_size,
-        num_lstm_layers,
+        num_rnn_layers,
         lstm_hidden_size,
+        rnn_hidden_size,
         dropout
     ).to(device)
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=100000)
+    # input_size = train_set[0][0].shape[1]
+    # num_lstm_layers = 2
+    # lstm_hidden_size = 375
+    # dropout=.2
+
+    # model = rnn.MultiLSTM(
+    #     input_size,
+    #     num_lstm_layers,
+    #     lstm_hidden_size,
+    #     dropout
+    # ).to(device)
+
+    # optimizer = torch.optim.Adam(model.parameters())
+    optimizer = torch.optim.SGD(model.parameters(), lr=.000001)
 
     epoch_losses, batch_losses, val_losses = train(
         model, device,

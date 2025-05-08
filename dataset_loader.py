@@ -34,9 +34,9 @@ class ClipVectorDataset(Dataset):
         # label = 1 if 'Left' in self.files[idx] else 0
         # label = np.zeros(2, dtype='float32')
         if 'Left' in self.files[idx]:
-            label = 0
+            label = 0.
         else:
-            label = 1
+            label = 1.
         # label[0] += float('Left' in self.files[idx])
         # label[1] += float('Right' in self.files[idx])
 

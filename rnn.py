@@ -23,7 +23,7 @@ class MultiLSTM(torch.nn.Module):
 
         self.dropout = Dropout(dropout)
 
-        self.linear = Linear(lstm_hidden_size, 2) # take feature vec and turn it into activations for 2 possible states
+        self.linear = Linear(lstm_hidden_size, 1) # take feature vec and turn it into 1 activation
 
     def forward(self, X):
         # batch_size, seq_len, _ = X.shape
@@ -69,22 +69,22 @@ class LSTM_MultiRNN(torch.nn.Module):
             dropout=dropout,
         )
 
-        self.linear = Linear(rnn_hidden_size, 2) # take feature vec and turn it into activations for 2 possible states
+        self.linear = Linear(rnn_hidden_size, 1) # take feature vec and turn it into activations for 2 possible states
 
     def forward(self, X):
         # batch_size, seq_len, _ = X.shape
         batch_size = len(X.sorted_indices)
 
-        lstm_hidden_state_0 = torch.zeros(1, batch_size, self.lstm_hidden_size)
-        lstm_context_state_0 = torch.zeros(1, batch_size, self.lstm_hidden_size)
+        # lstm_hidden_state_0 = torch.zeros(1, batch_size, self.lstm_hidden_size)
+        # lstm_context_state_0 = torch.zeros(1, batch_size, self.lstm_hidden_size)
         lstm_output, (lstm_hidden_state_f, lstm_context_state_f) = self.lstm(
-            X, (lstm_hidden_state_0, lstm_context_state_0)
+            X#, (lstm_hidden_state_0, lstm_context_state_0)
         )
 
-        rnn_hidden_state_0 = torch.zeros(self.num_rnn_layers, batch_size, self.rnn_hidden_size)
+        # rnn_hidden_state_0 = torch.zeros(self.num_rnn_layers, batch_size, self.rnn_hidden_size)
         rnn_output, rnn_hidden_state_f = self.rnn(
             lstm_output
-            , rnn_hidden_state_0
+            #, rnn_hidden_state_0
         )
 
         rnn_output, seq_lens = torch.nn.utils.rnn.pad_packed_sequence(rnn_output, batch_first=True)
