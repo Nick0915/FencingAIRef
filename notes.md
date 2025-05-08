@@ -74,3 +74,12 @@ I will track things such as:
     * Also, in the previous step I accidentally encoded the videos in the original FPS, so although they are downsampled, it just speeds up the end instead of slowing down the beginning
       * This wouldn't matter for the model since it is fed frame-by-frame anyway, but it just makes manually watching the videos take longer
       * So, I fix that in this step right before calculating the optical flow, so now the beginning of clips is fast whereas the end is normal speed, making watching the clips go faster for manual checks
+6) Use Inception-v4 model to turn videos into feature-vector sequences (`6_videos_to_features.py`)
+    * Manually removed a couple vectors for being too small (not enough frames), brought the count down to 21,194 clips
+    * Finally a step I can use hopper for again, took around 3 hours
+    * Also created a pytorch `Dataset` class (`6.8_dataloader.py`)
+7) The magnum opus: actually classify all the vectors into left (1) or right (0) with an RNN (`7_classify.py`)
+    * The RNN is actually in (`6.9_rnn.py`)
+      * Justification is that `7` should depend on smaller numbers lol
+      * First architecture: LSTM + Multi-layer RNN (just like Douglas's original idea)
+
