@@ -49,6 +49,10 @@ def video2vector(in_file, model, transform):
         tensor = transform(frame)
         tensors.append(tensor)
 
+    if len(tensors) == 0:
+        print(f'got 0-tensor from {in_file}, skipping...')
+        return
+
     tensors = torch.tensor(np.array(tensors)).to(device)
 
     print(f'running tensors ({tensors.shape}) through model: {in_file}')
