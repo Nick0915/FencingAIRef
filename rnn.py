@@ -26,19 +26,11 @@ class MultiLSTM(torch.nn.Module):
         self.linear = Linear(lstm_hidden_size, 1) # take feature vec and turn it into 1 activation
 
     def forward(self, X):
-        # batch_size, seq_len, _ = X.shape
-        batch_size = len(X.sorted_indices)
+        lstm_output, (lstm_hidden_state_f, lstm_context_state_f) = self.lstm(X)
 
-        # lstm_hidden_state_0 = torch.zeros(self.num_lstm_layers, batch_size, self.lstm_hidden_size)
-        # lstm_context_state_0 = torch.zeros(self.num_lstm_layers, batch_size, self.lstm_hidden_size)
-        lstm_output, (lstm_hidden_state_f, lstm_context_state_f) = self.lstm(
-            X#, (lstm_hidden_state_0, lstm_context_state_0)
-        )
+        # lstm_output, seq_lens = torch.nn.utils.rnn.pad_packed_sequence(lstm_output, batch_first=True)
 
-        lstm_output, seq_lens = torch.nn.utils.rnn.pad_packed_sequence(lstm_output, batch_first=True)
-
-        return self.linear(lstm_output[:, -1, :])
-
+        return self.linear(lstm_hidden_state_f[-1])
 
 
 class LSTM_MultiRNN(torch.nn.Module):
@@ -72,22 +64,9 @@ class LSTM_MultiRNN(torch.nn.Module):
         self.linear = Linear(rnn_hidden_size, 1) # take feature vec and turn it into activations for 2 possible states
 
     def forward(self, X):
-        # batch_size, seq_len, _ = X.shape
-        batch_size = len(X.sorted_indices)
+        lstm_output, (lstm_hidden_state_f, lstm_context_state_f) = self.lstm(X)
 
-        # lstm_hidden_state_0 = torch.zeros(1, batch_size, self.lstm_hidden_size)
-        # lstm_context_state_0 = torch.zeros(1, batch_size, self.lstm_hidden_size)
-        lstm_output, (lstm_hidden_state_f, lstm_context_state_f) = self.lstm(
-            X#, (lstm_hidden_state_0, lstm_context_state_0)
-        )
+        rnn_output, rnn_hidden_state_f = self.rnn(lstm_output)
 
-        # rnn_hidden_state_0 = torch.zeros(self.num_rnn_layers, batch_size, self.rnn_hidden_size)
-        rnn_output, rnn_hidden_state_f = self.rnn(
-            lstm_output
-            #, rnn_hidden_state_0
-        )
-
-        rnn_output, seq_lens = torch.nn.utils.rnn.pad_packed_sequence(rnn_output, batch_first=True)
-
-        return self.linear(rnn_output[:, -1, :])
+        return self.linear(rnn_hidden_state_f[-1])
 

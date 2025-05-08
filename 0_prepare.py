@@ -29,6 +29,8 @@ def prepare():
         'Vectors/Sabre/Right',
         'ModelWeights',
         'ModelWeights/Sabre',
+        'Plots',
+        'Plots/Sabre'
     ]
     for folder in directories:
         desired = f'./Data/{folder}'
